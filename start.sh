@@ -41,18 +41,6 @@ if [ ! -d "node_modules" ]; then
     fi
 fi
 
-# Install Playwright if needed
-if [ ! -d "node_modules/.playwright" ]; then
-    echo "Installing Playwright browser..."
-    npx playwright install chromium
-    if [ $? -ne 0 ]; then
-        echo "ERROR: Failed to install Playwright browser."
-        echo
-        read -p "Press Enter to continue..."
-        exit 1
-    fi
-fi
-
 echo "Starting Webook Ticket Bot..."
 echo
 echo "Access the web interface at: http://localhost:3000"

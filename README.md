@@ -7,7 +7,7 @@ An automated ticket purchasing bot for webook.com. This bot monitors for ticket 
 - Automatically monitors ticket website for availability
 - Purchases tickets as soon as they become available
 - Configurable for different matches/events
-- Supports both API-based and browser-based ticket purchasing
+- Uses direct HTTP requests for maximum speed and reliability
 - Web interface for monitoring status and configuration
 
 ## Requirements
@@ -22,11 +22,7 @@ An automated ticket purchasing bot for webook.com. This bot monitors for ticket 
    ```
    npm install
    ```
-3. Install Playwright browser:
-   ```
-   npx playwright install chromium
-   ```
-4. Create a `.env` file with your settings or use the web interface to configure
+3. Create a `.env` file with your settings or use the web interface to configure
 
 ## Usage
 
@@ -80,10 +76,24 @@ You can test the bot with the following match:
 https://webook.com/en/events/spl-alnassr-vs-alittihad-469422
 ```
 
+## How It Works
+
+The bot uses two approaches to check for ticket availability:
+
+1. **API-based checking**: Attempts to check availability via the website's API (faster)
+2. **HTTP-based checking**: Scrapes the event page with Cheerio to detect ticket availability (more reliable)
+
+When tickets are found, the bot automatically:
+1. Loads the event page
+2. Extracts form tokens and ticket information
+3. Logs in with your credentials (if needed)
+4. Selects the specified ticket category and quantity
+5. Completes the checkout process
+
 ## Troubleshooting
 
 - If the bot can't find tickets, try adjusting the selectors in `ticketService.js`
-- For browser-based issues, set `headless: false` in `purchaseTicketsViaBrowser()` to see what's happening
+- Make sure your credentials are correct in the .env file or web interface
 - Check the logs for detailed error information
 
 ## License
