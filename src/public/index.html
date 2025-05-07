@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webook Ticket Bot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 20px;
+            background-color: #f8f9fa;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .status-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .status-running {
+            background-color: #28a745;
+        }
+        .status-stopped {
+            background-color: #dc3545;
+        }
+        .heading-with-status {
+            display: flex;
+            align-items: center;
+        }
+        .config-form label {
+            font-weight: 500;
+        }
+        .event-url {
+            word-break: break-all;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-4">
+                <h1>Webook Ticket Bot</h1>
+                <p class="lead">Configure, monitor, and control your ticket bot</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Configuration Panel -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Bot Configuration</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="config-form" class="config-form">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Webook Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Webook Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="eventUrl" class="form-label">Target Event URL</label>
+                                <input type="url" class="form-control" id="eventUrl" name="eventUrl" required>
+                                <small class="form-text text-muted">Example: https://webook.com/en/events/spl-alnassr-vs-alittihad-469422</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tickets" class="form-label">Number of Tickets</label>
+                                <input type="number" class="form-control" id="tickets" name="tickets" min="1" value="1" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="interval" class="form-label">Monitor Interval (seconds)</label>
+                                <input type="number" class="form-control" id="interval" name="interval" min="5" value="10" required>
+                                <small class="form-text text-muted">How often to check for tickets (in seconds)</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="category" class="form-label">Ticket Category</label>
+                                <input type="text" class="form-control" id="category" name="category" value="General">
+                                <small class="form-text text-muted">Leave as "General" if unsure</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Configuration</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status and Control Panel -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <div class="heading-with-status">
+                            <span id="status-indicator" class="status-indicator status-stopped"></span>
+                            <h5 class="mb-0">Bot Status and Control</h5>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="status-display">
+                            <p><strong>Status:</strong> <span id="running-status">Stopped</span></p>
+                            <p><strong>Last Check:</strong> <span id="last-check">Never</span></p>
+                            <p><strong>Tickets Found:</strong> <span id="tickets-found">No</span></p>
+                            <p><strong>Purchase Attempts:</strong> <span id="purchase-attempts">0</span></p>
+                            <p><strong>Successful Purchases:</strong> <span id="successful-purchases">0</span></p>
+                            <p><strong>Uptime:</strong> <span id="uptime">0 seconds</span></p>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-3">
+                            <button id="start-btn" class="btn btn-success">Start Monitoring</button>
+                            <button id="stop-btn" class="btn btn-danger" disabled>Stop Monitoring</button>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h6>Current Configuration:</h6>
+                            <div id="current-config" class="mt-2">
+                                <p><strong>Target Event:</strong> <span id="config-event-url" class="event-url">Not set</span></p>
+                                <p><strong>Tickets to Purchase:</strong> <span id="config-tickets">1</span></p>
+                                <p><strong>Check Interval:</strong> <span id="config-interval">10</span> seconds</p>
+                                <p><strong>Ticket Category:</strong> <span id="config-category">General</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Last Result</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre id="last-result">No results yet</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Elements
+        const configForm = document.getElementById('config-form');
+        const statusIndicator = document.getElementById('status-indicator');
+        const runningStatus = document.getElementById('running-status');
+        const lastCheck = document.getElementById('last-check');
+        const ticketsFound = document.getElementById('tickets-found');
+        const purchaseAttempts = document.getElementById('purchase-attempts');
+        const successfulPurchases = document.getElementById('successful-purchases');
+        const uptime = document.getElementById('uptime');
+        const lastResult = document.getElementById('last-result');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const configEventUrl = document.getElementById('config-event-url');
+        const configTickets = document.getElementById('config-tickets');
+        const configInterval = document.getElementById('config-interval');
+        const configCategory = document.getElementById('config-category');
+
+        // Form fields
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const eventUrlInput = document.getElementById('eventUrl');
+        const ticketsInput = document.getElementById('tickets');
+        const intervalInput = document.getElementById('interval');
+        const categoryInput = document.getElementById('category');
+
+        // Load initial configuration
+        fetchConfig();
+        
+        // Start status polling
+        pollStatus();
+        setInterval(pollStatus, 5000);
+
+        // Event listeners
+        configForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await saveConfig();
+        });
+
+        startBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/control/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatusDisplay(data.status);
+                    alert('Monitoring started successfully!');
+                } else {
+                    alert('Failed to start monitoring');
+                }
+            } catch (error) {
+                console.error('Error starting monitoring:', error);
+                alert('Error starting monitoring: ' + error.message);
+            }
+        });
+
+        stopBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/control/stop', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatusDisplay(data.status);
+                    alert('Monitoring stopped successfully!');
+                } else {
+                    alert('Failed to stop monitoring');
+                }
+            } catch (error) {
+                console.error('Error stopping monitoring:', error);
+                alert('Error stopping monitoring: ' + error.message);
+            }
+        });
+
+        // Helper functions
+        async function fetchConfig() {
+            try {
+                const response = await fetch('/config');
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Update form fields
+                    emailInput.value = data.config.WEBOOK_EMAIL || '';
+                    // Don't set password as it's masked
+                    eventUrlInput.value = data.config.TARGET_EVENT_URL || '';
+                    ticketsInput.value = data.config.NUMBER_OF_TICKETS || '1';
+                    intervalInput.value = data.config.MONITOR_INTERVAL || '10';
+                    categoryInput.value = data.config.TICKET_CATEGORY || 'General';
+                    
+                    // Update config display
+                    configEventUrl.textContent = data.config.TARGET_EVENT_URL || 'Not set';
+                    configTickets.textContent = data.config.NUMBER_OF_TICKETS || '1';
+                    configInterval.textContent = data.config.MONITOR_INTERVAL || '10';
+                    configCategory.textContent = data.config.TICKET_CATEGORY || 'General';
+                }
+            } catch (error) {
+                console.error('Error fetching config:', error);
+            }
+        }
+
+        async function saveConfig() {
+            try {
+                const formData = {
+                    email: emailInput.value,
+                    password: passwordInput.value,
+                    eventUrl: eventUrlInput.value,
+                    tickets: ticketsInput.value,
+                    interval: intervalInput.value,
+                    category: categoryInput.value
+                };
+                
+                const response = await fetch('/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    alert('Configuration saved successfully!');
+                    await fetchConfig();
+                } else {
+                    alert('Failed to save configuration');
+                }
+            } catch (error) {
+                console.error('Error saving config:', error);
+                alert('Error saving config: ' + error.message);
+            }
+        }
+
+        async function pollStatus() {
+            try {
+                const response = await fetch('/status');
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatusDisplay(data);
+                }
+            } catch (error) {
+                console.error('Error polling status:', error);
+            }
+        }
+
+        function updateStatusDisplay(status) {
+            // Update status indicator
+            if (status.isRunning) {
+                statusIndicator.classList.remove('status-stopped');
+                statusIndicator.classList.add('status-running');
+                runningStatus.textContent = 'Running';
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+            } else {
+                statusIndicator.classList.remove('status-running');
+                statusIndicator.classList.add('status-stopped');
+                runningStatus.textContent = 'Stopped';
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+            
+            // Update other status info
+            lastCheck.textContent = status.lastCheck ? new Date(status.lastCheck).toLocaleString() : 'Never';
+            ticketsFound.textContent = status.ticketsFound ? 'Yes' : 'No';
+            purchaseAttempts.textContent = status.purchaseAttempts;
+            successfulPurchases.textContent = status.successfulPurchases;
+            
+            // Format uptime
+            const uptimeSeconds = Math.floor(status.uptime);
+            if (uptimeSeconds < 60) {
+                uptime.textContent = `${uptimeSeconds} seconds`;
+            } else if (uptimeSeconds < 3600) {
+                uptime.textContent = `${Math.floor(uptimeSeconds / 60)} minutes ${uptimeSeconds % 60} seconds`;
+            } else {
+                uptime.textContent = `${Math.floor(uptimeSeconds / 3600)} hours ${Math.floor((uptimeSeconds % 3600) / 60)} minutes`;
+            }
+            
+            // Update last result
+            if (status.lastCheckResult) {
+                lastResult.textContent = JSON.stringify(status.lastCheckResult, null, 2);
+            }
+        }
+    </script>
+</body>
+</html>

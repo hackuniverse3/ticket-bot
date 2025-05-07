@@ -1,129 +1,91 @@
-# WeBook Ticket Bot
+# Webook Ticket Bot
 
-An automated ticket purchasing bot for WeBook.com that monitors and purchases football match tickets as soon as they become available. Designed for maximum speed and reliability.
+An automated ticket purchasing bot for webook.com. This bot monitors for ticket availability and instantly purchases tickets when they become available.
 
 ## Features
 
-- **Ultra-Fast Ticket Monitoring**: Automatically refreshes and checks for ticket availability with configurable intervals
-- **Dual-Mode Operation**: Uses direct API calls when possible, with a fallback to Playwright browser automation
-- **Smart Detection**: Automatically discovers API endpoints and authentication methods for optimal performance
-- **Flexible Configuration**: Easily customize ticket preferences, monitoring settings, and purchase behavior
-- **Auto-Login**: Handles authentication and maintains session state
-- **Purchase Confirmation**: Saves screenshots of successful purchases as proof
-- **Comprehensive Logging**: Detailed logs for troubleshooting and monitoring
+- Automatically monitors ticket website for availability
+- Purchases tickets as soon as they become available
+- Configurable for different matches/events
+- Supports both API-based and browser-based ticket purchasing
+- Web interface for monitoring status and configuration
 
-## Installation
+## Requirements
 
-1. Install Python 3.8 or higher
-2. Clone this repository
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
+- Node.js 18 or higher
+- A webook.com account
+
+## Setup
+
+1. Clone this repository
+2. Install dependencies:
    ```
-4. Install Playwright browsers:
-   ```bash
-   playwright install
+   npm install
    ```
-5. Copy `env.example` to `.env` and add your WeBook credentials:
+3. Install Playwright browser:
    ```
-   WEBBOOK_EMAIL=your_email@example.com
-   WEBBOOK_PASSWORD=your_password
+   npx playwright install chromium
    ```
-
-## Configuration
-
-The bot is highly configurable through the `config.json` file:
-
-### Basic Settings
-- `monitoring_interval`: How often to check for tickets (in seconds)
-- `max_attempts`: Maximum number of attempts before giving up
-
-### Ticket Preferences
-- Set quantity, preferred sections, and price range
-- Configure seating preferences (sections, rows)
-
-### Events
-- Target specific events by URL
-- Set priorities for multiple events
-
-### Purchase Settings
-- Enable/disable automatic purchasing
-- Configure retry behavior and timeouts
-
-### Browser Settings
-- Customize the browser environment for optimal performance
+4. Create a `.env` file with your settings or use the web interface to configure
 
 ## Usage
 
-To start monitoring and purchasing tickets:
+Start the bot:
 
-```bash
-python ticket_bot.py
+```
+npm start
 ```
 
-The bot will:
-1. Initialize and discover API endpoints
-2. Log into your WeBook account
-3. Monitor the target event URL for ticket availability
-4. Automatically purchase tickets when available
-5. Save confirmation screenshots and logs
+For development with auto-restart:
 
-### Customizing Event Targets
-
-Edit the `event_targets` section in `config.json` to monitor different events:
-
-```json
-"event_targets": [
-    {
-        "name": "Real Madrid vs Barcelona",
-        "url": "https://webook.com/en/events/your-event-id",
-        "priority": "high"
-    }
-]
+```
+npm run dev
 ```
 
-## How It Works
+## Web Interface
 
-1. **Initialization**: The bot first tries to discover the actual API endpoints used by the website by analyzing network traffic.
+Once the bot is running, you can access the web interface at:
 
-2. **Authentication**: Attempts to authenticate via API first, then falls back to browser login if needed.
+```
+http://localhost:3000
+```
 
-3. **Ticket Monitoring**: Continuously checks for ticket availability using the fastest available method.
+The web interface allows you to:
 
-4. **Purchase Process**: When tickets become available, the bot automatically:
-   - Selects the configured number of tickets
-   - Chooses the best available seats based on preferences
-   - Proceeds through the checkout process
-   - Captures confirmation for verification
+1. **Configure the bot** - Set your webook.com credentials, target event URL, and purchase options
+2. **Monitor status** - See real-time status of the bot, including last check time and results
+3. **Control operation** - Start and stop the ticket monitoring process
 
-## Advanced Usage
+## Configuration Options
 
-### Headless Mode
+- **Webook Email/Password** - Your login credentials for webook.com
+- **Target Event URL** - The URL of the specific match you want tickets for
+- **Number of Tickets** - How many tickets to purchase when available
+- **Monitor Interval** - How frequently to check for tickets (in seconds)
+- **Ticket Category** - Specific category of tickets to purchase (leave as "General" if unsure)
 
-By default, the bot runs in headless mode (no visible browser). To see the browser in action:
+## Deployment
 
-1. Set `HEADLESS=false` in your `.env` file
-2. Restart the bot
+This project includes configuration for deployment on fly.io:
 
-### Multiple Event Monitoring
+```
+fly launch
+fly deploy
+```
 
-To monitor multiple events simultaneously, add them to the `event_targets` array in `config.json`.
+## Testing
+
+You can test the bot with the following match:
+```
+https://webook.com/en/events/spl-alnassr-vs-alittihad-469422
+```
 
 ## Troubleshooting
 
-If you encounter issues:
+- If the bot can't find tickets, try adjusting the selectors in `ticketService.js`
+- For browser-based issues, set `headless: false` in `purchaseTicketsViaBrowser()` to see what's happening
+- Check the logs for detailed error information
 
-- Check `bot.log` for detailed error messages and status updates
-- Verify your WeBook credentials in the `.env` file
-- Make sure you have proper internet connectivity
-- Try setting `HEADLESS=false` to see what's happening in the browser
+## License
 
-## Security Notes
-
-- Your credentials are stored locally in the `.env` file
-- The bot uses standard headers and user agents to mimic normal browser behavior
-- Screenshots are saved locally and contain potentially sensitive information
-
-## Disclaimer
-
-This tool is for educational purposes only. Use responsibly and in accordance with WeBook's terms of service. 
+MIT 
