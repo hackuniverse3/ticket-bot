@@ -1,0 +1,16 @@
+{
+    "monitoring_interval": 1,
+    "max_attempts": 100,
+    "ticket_preferences": {
+        "quantity": 1,
+        "section": "best_available",
+        "price_range": {
+            "min": 0,
+            "max": 1000
+        }
+    },
+    "notification_settings": {
+        "enable_email_notifications": false,
+        "enable_console_notifications": true
+    }
+} 
