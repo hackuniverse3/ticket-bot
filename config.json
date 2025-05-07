@@ -3,14 +3,39 @@
     "max_attempts": 100,
     "ticket_preferences": {
         "quantity": 1,
-        "section": "best_available",
+        "section_preference": "best_available",
         "price_range": {
             "min": 0,
             "max": 1000
+        },
+        "seating": {
+            "preferred_sections": [],
+            "preferred_rows": [],
+            "avoid_sections": []
         }
     },
+    "event_targets": [
+        {
+            "name": "Al Nassr vs Al Ittihad",
+            "url": "https://webook.com/en/events/spl-alnassr-vs-alittihad-469422",
+            "priority": "high"
+        }
+    ],
+    "purchase_settings": {
+        "auto_purchase": true,
+        "max_retries": 3,
+        "timeout_seconds": 30
+    },
     "notification_settings": {
-        "enable_email_notifications": false,
-        "enable_console_notifications": true
+        "enable_console_notifications": true,
+        "enable_screenshot": true,
+        "save_confirmation": true
+    },
+    "browser_settings": {
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "viewport": {
+            "width": 1920,
+            "height": 1080
+        }
     }
 } 
