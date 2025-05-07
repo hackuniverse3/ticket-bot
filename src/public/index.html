@@ -72,7 +72,15 @@
                             </div>
                             <div class="mb-3">
                                 <label for="eventUrl" class="form-label">Target Event URL</label>
-                                <input type="url" class="form-control" id="eventUrl" name="eventUrl" required>
+                                <div class="input-group mb-3">
+                                    <input type="url" class="form-control" id="eventUrl" name="eventUrl" required>
+                                    <button class="btn btn-secondary" type="button" id="searchBtn" data-bs-toggle="modal" data-bs-target="#searchModal">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                        </svg>
+                                        Search
+                                    </button>
+                                </div>
                                 <small class="form-text text-muted">Example: https://webook.com/en/events/spl-alnassr-vs-alittihad-469422</small>
                             </div>
                             <div class="mb-3">
@@ -88,6 +96,16 @@
                                 <label for="category" class="form-label">Ticket Category</label>
                                 <input type="text" class="form-control" id="category" name="category" value="General">
                                 <small class="form-text text-muted">Leave as "General" if unsure</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="primarySeatPreference" class="form-label">Primary Seat Preference</label>
+                                <input type="text" class="form-control" id="primarySeatPreference" name="primarySeatPreference" placeholder="e.g., VIP, Section A">
+                                <small class="form-text text-muted">Preferred section or row (will try this first)</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="secondarySeatPreference" class="form-label">Secondary Seat Preference</label>
+                                <input type="text" class="form-control" id="secondarySeatPreference" name="secondarySeatPreference" placeholder="e.g., Section B">
+                                <small class="form-text text-muted">Backup section or row if primary not available</small>
                             </div>
                             <button type="submit" class="btn btn-primary">Save Configuration</button>
                         </form>
@@ -126,6 +144,8 @@
                                 <p><strong>Tickets to Purchase:</strong> <span id="config-tickets">1</span></p>
                                 <p><strong>Check Interval:</strong> <span id="config-interval">10</span> seconds</p>
                                 <p><strong>Ticket Category:</strong> <span id="config-category">General</span></p>
+                                <p><strong>Primary Seat Preference:</strong> <span id="config-primary-seat">Not set</span></p>
+                                <p><strong>Secondary Seat Preference:</strong> <span id="config-secondary-seat">Not set</span></p>
                             </div>
                         </div>
                     </div>
@@ -138,6 +158,30 @@
                     <div class="card-body">
                         <pre id="last-result">No results yet</pre>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Modal -->
+    <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="searchModalLabel">Search Events</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Enter event name, team, or artist...">
+                        <button class="btn btn-primary" type="button" id="performSearchBtn">Search</button>
+                    </div>
+                    <div id="searchResults" class="mt-3">
+                        <p class="text-center text-muted">Search for events to see results here</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -161,6 +205,8 @@
         const configTickets = document.getElementById('config-tickets');
         const configInterval = document.getElementById('config-interval');
         const configCategory = document.getElementById('config-category');
+        const configPrimarySeat = document.getElementById('config-primary-seat');
+        const configSecondarySeat = document.getElementById('config-secondary-seat');
 
         // Form fields
         const emailInput = document.getElementById('email');
@@ -169,6 +215,14 @@
         const ticketsInput = document.getElementById('tickets');
         const intervalInput = document.getElementById('interval');
         const categoryInput = document.getElementById('category');
+        const primarySeatPreferenceInput = document.getElementById('primarySeatPreference');
+        const secondarySeatPreferenceInput = document.getElementById('secondarySeatPreference');
+
+        // Search elements
+        const searchInput = document.getElementById('searchInput');
+        const performSearchBtn = document.getElementById('performSearchBtn');
+        const searchResults = document.getElementById('searchResults');
+        const searchModal = new bootstrap.Modal(document.getElementById('searchModal'));
 
         // Load initial configuration
         fetchConfig();
@@ -223,6 +277,75 @@
             }
         });
 
+        // Search functionality
+        performSearchBtn.addEventListener('click', async () => {
+            const query = searchInput.value.trim();
+            if (query.length < 2) {
+                searchResults.innerHTML = '<p class="text-danger">Please enter at least 2 characters</p>';
+                return;
+            }
+            
+            searchResults.innerHTML = '<p class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></p>';
+            
+            try {
+                const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    displaySearchResults(data.results);
+                } else {
+                    searchResults.innerHTML = '<p class="text-danger">Error searching for events</p>';
+                }
+            } catch (error) {
+                console.error('Error searching events:', error);
+                searchResults.innerHTML = '<p class="text-danger">Error searching for events</p>';
+            }
+        });
+        
+        // Also trigger search on Enter key
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                performSearchBtn.click();
+            }
+        });
+
+        function displaySearchResults(results) {
+            if (!results || results.length === 0) {
+                searchResults.innerHTML = '<p class="text-center text-muted">No events found matching your search</p>';
+                return;
+            }
+            
+            let html = '<div class="list-group">';
+            
+            results.forEach(event => {
+                const availabilityClass = event.available ? 'text-success' : 'text-danger';
+                const availabilityText = event.available ? 'Available' : 'Sold Out';
+                
+                html += `
+                    <a href="#" class="list-group-item list-group-item-action event-result" data-url="${event.url}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">${event.title}</h5>
+                            <small class="${availabilityClass}">${availabilityText}</small>
+                        </div>
+                        <p class="mb-1">${event.date || 'Date not available'}</p>
+                        <small class="text-muted">${event.url}</small>
+                    </a>
+                `;
+            });
+            
+            html += '</div>';
+            searchResults.innerHTML = html;
+            
+            // Add click event to select event
+            document.querySelectorAll('.event-result').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const url = item.dataset.url;
+                    eventUrlInput.value = url;
+                    searchModal.hide();
+                });
+            });
+        }
+
         // Helper functions
         async function fetchConfig() {
             try {
@@ -237,12 +360,16 @@
                     ticketsInput.value = data.config.NUMBER_OF_TICKETS || '1';
                     intervalInput.value = data.config.MONITOR_INTERVAL || '10';
                     categoryInput.value = data.config.TICKET_CATEGORY || 'General';
+                    primarySeatPreferenceInput.value = data.config.PRIMARY_SEAT_PREFERENCE || '';
+                    secondarySeatPreferenceInput.value = data.config.SECONDARY_SEAT_PREFERENCE || '';
                     
                     // Update config display
                     configEventUrl.textContent = data.config.TARGET_EVENT_URL || 'Not set';
                     configTickets.textContent = data.config.NUMBER_OF_TICKETS || '1';
                     configInterval.textContent = data.config.MONITOR_INTERVAL || '10';
                     configCategory.textContent = data.config.TICKET_CATEGORY || 'General';
+                    configPrimarySeat.textContent = data.config.PRIMARY_SEAT_PREFERENCE || 'Not set';
+                    configSecondarySeat.textContent = data.config.SECONDARY_SEAT_PREFERENCE || 'Not set';
                 }
             } catch (error) {
                 console.error('Error fetching config:', error);
@@ -257,7 +384,9 @@
                     eventUrl: eventUrlInput.value,
                     tickets: ticketsInput.value,
                     interval: intervalInput.value,
-                    category: categoryInput.value
+                    category: categoryInput.value,
+                    primarySeatPreference: primarySeatPreferenceInput.value,
+                    secondarySeatPreference: secondarySeatPreferenceInput.value
                 };
                 
                 const response = await fetch('/config', {

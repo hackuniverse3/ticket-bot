@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const dotenv = require('dotenv');
 const { getTicketStatus, startTicketMonitoring, stopTicketMonitoring } = require('./monitor');
+const { searchEvents } = require('./ticketService');
 const logger = require('./utils/logger');
 
 function setupWebServer(port) {
@@ -47,6 +48,23 @@ function setupWebServer(port) {
     res.json({ message: 'Monitoring stopped', status: getTicketStatus() });
   });
   
+  // Search endpoint
+  app.get('/search', async (req, res) => {
+    try {
+      const query = req.query.q;
+      
+      if (!query || query.trim().length < 2) {
+        return res.status(400).json({ error: 'Search query must be at least 2 characters' });
+      }
+      
+      const results = await searchEvents(query.trim());
+      res.json({ results });
+    } catch (error) {
+      logger.error('Error in search endpoint:', error);
+      res.status(500).json({ error: 'Failed to search for events' });
+    }
+  });
+  
   // Config endpoints
   app.get('/config', (req, res) => {
     try {
@@ -64,6 +82,8 @@ function setupWebServer(port) {
           NUMBER_OF_TICKETS: envConfig.NUMBER_OF_TICKETS || '1',
           MONITOR_INTERVAL: envConfig.MONITOR_INTERVAL || '10',
           TICKET_CATEGORY: envConfig.TICKET_CATEGORY || 'General',
+          PRIMARY_SEAT_PREFERENCE: envConfig.PRIMARY_SEAT_PREFERENCE || '',
+          SECONDARY_SEAT_PREFERENCE: envConfig.SECONDARY_SEAT_PREFERENCE || '',
           // Show only partial email for security
           WEBOOK_EMAIL: envConfig.WEBOOK_EMAIL ? 
             envConfig.WEBOOK_EMAIL.replace(/(.{2})(.*)(@.*)/, '$1****$3') : '',
@@ -81,7 +101,7 @@ function setupWebServer(port) {
   
   app.post('/config', (req, res) => {
     try {
-      const { email, password, eventUrl, tickets, interval, category } = req.body;
+      const { email, password, eventUrl, tickets, interval, category, primarySeatPreference, secondarySeatPreference } = req.body;
       
       // Update .env file
       const envPath = path.resolve(process.cwd(), '.env');
@@ -92,6 +112,8 @@ function setupWebServer(port) {
         NUMBER_OF_TICKETS: tickets,
         MONITOR_INTERVAL: interval,
         TICKET_CATEGORY: category,
+        PRIMARY_SEAT_PREFERENCE: primarySeatPreference || '',
+        SECONDARY_SEAT_PREFERENCE: secondarySeatPreference || '',
         PORT: process.env.PORT || '3000'
       };
       
