@@ -3,459 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webook Ticket Bot</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Football Ticket Bot</title>
     <style>
         body {
-            padding-top: 20px;
-            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
         }
-        .card {
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        .status-indicator {
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
             display: inline-block;
-            margin-right: 5px;
         }
-        .status-running {
-            background-color: #28a745;
+        button:hover {
+            background-color: #2980b9;
         }
-        .status-stopped {
-            background-color: #dc3545;
+        .status-container {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
         }
-        .heading-with-status {
-            display: flex;
-            align-items: center;
-        }
-        .config-form label {
-            font-weight: 500;
-        }
-        .event-url {
+        #statusOutput {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
             word-break: break-all;
         }
-        pre {
-            background-color: #f5f5f5;
-            padding: 10px;
-            border-radius: 5px;
+        .btn-container {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="row">
-            <div class="col-12 text-center mb-4">
-                <h1>Webook Ticket Bot</h1>
-                <p class="lead">Configure, monitor, and control your ticket bot</p>
-            </div>
+        <h1>Football Ticket Bot</h1>
+        
+        <div class="form-group">
+            <label for="matchName">Match Name:</label>
+            <input type="text" id="matchName" placeholder="e.g., Real Madrid vs Barcelona" required>
         </div>
-
-        <div class="row">
-            <!-- Configuration Panel -->
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Bot Configuration</h5>
-                    </div>
-                    <div class="card-body">
-                        <form id="config-form" class="config-form">
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Webook Email</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Webook Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="eventUrl" class="form-label">Target Event URL</label>
-                                <div class="input-group mb-3">
-                                    <input type="url" class="form-control" id="eventUrl" name="eventUrl" required>
-                                    <button class="btn btn-secondary" type="button" id="searchBtn" data-bs-toggle="modal" data-bs-target="#searchModal">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                                        </svg>
-                                        Search
-                                    </button>
-                                </div>
-                                <small class="form-text text-muted">Example: https://webook.com/en/events/spl-alnassr-vs-alittihad-469422</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="tickets" class="form-label">Number of Tickets</label>
-                                <input type="number" class="form-control" id="tickets" name="tickets" min="1" value="1" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="interval" class="form-label">Monitor Interval (seconds)</label>
-                                <input type="number" class="form-control" id="interval" name="interval" min="5" value="10" required>
-                                <small class="form-text text-muted">How often to check for tickets (in seconds)</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="category" class="form-label">Ticket Category</label>
-                                <input type="text" class="form-control" id="category" name="category" value="General">
-                                <small class="form-text text-muted">Leave as "General" if unsure</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="primarySeatPreference" class="form-label">Primary Seat Preference</label>
-                                <input type="text" class="form-control" id="primarySeatPreference" name="primarySeatPreference" placeholder="e.g., VIP, Section A">
-                                <small class="form-text text-muted">Preferred section or row (will try this first)</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="secondarySeatPreference" class="form-label">Secondary Seat Preference</label>
-                                <input type="text" class="form-control" id="secondarySeatPreference" name="secondarySeatPreference" placeholder="e.g., Section B">
-                                <small class="form-text text-muted">Backup section or row if primary not available</small>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Save Configuration</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Status and Control Panel -->
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <div class="heading-with-status">
-                            <span id="status-indicator" class="status-indicator status-stopped"></span>
-                            <h5 class="mb-0">Bot Status and Control</h5>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div id="status-display">
-                            <p><strong>Status:</strong> <span id="running-status">Stopped</span></p>
-                            <p><strong>Last Check:</strong> <span id="last-check">Never</span></p>
-                            <p><strong>Tickets Found:</strong> <span id="tickets-found">No</span></p>
-                            <p><strong>Purchase Attempts:</strong> <span id="purchase-attempts">0</span></p>
-                            <p><strong>Successful Purchases:</strong> <span id="successful-purchases">0</span></p>
-                            <p><strong>Uptime:</strong> <span id="uptime">0 seconds</span></p>
-                        </div>
-                        
-                        <div class="d-grid gap-2 mt-3">
-                            <button id="start-btn" class="btn btn-success">Start Monitoring</button>
-                            <button id="stop-btn" class="btn btn-danger" disabled>Stop Monitoring</button>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <h6>Current Configuration:</h6>
-                            <div id="current-config" class="mt-2">
-                                <p><strong>Target Event:</strong> <span id="config-event-url" class="event-url">Not set</span></p>
-                                <p><strong>Tickets to Purchase:</strong> <span id="config-tickets">1</span></p>
-                                <p><strong>Check Interval:</strong> <span id="config-interval">10</span> seconds</p>
-                                <p><strong>Ticket Category:</strong> <span id="config-category">General</span></p>
-                                <p><strong>Primary Seat Preference:</strong> <span id="config-primary-seat">Not set</span></p>
-                                <p><strong>Secondary Seat Preference:</strong> <span id="config-secondary-seat">Not set</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">Last Result</h5>
-                    </div>
-                    <div class="card-body">
-                        <pre id="last-result">No results yet</pre>
-                    </div>
-                </div>
-            </div>
+        
+        <div class="form-group">
+            <label for="matchDate">Match Date:</label>
+            <input type="date" id="matchDate" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="ticketQuantity">Number of Tickets:</label>
+            <select id="ticketQuantity">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+            </select>
+        </div>
+        
+        <div class="btn-container">
+            <button id="startBtn" onclick="startMonitoring()">Start Monitoring</button>
+            <button id="statusBtn" onclick="checkStatus()">Check Status</button>
+            <button id="stopBtn" onclick="stopMonitoring()" disabled>Stop Monitoring</button>
+        </div>
+        
+        <div class="status-container">
+            <h3>Status Output:</h3>
+            <pre id="statusOutput">No active monitoring tasks.</pre>
+        </div>
+        
+        <div class="footer">
+            <p>Football Ticket Bot &copy; 2023 | Running 24/7 to secure your tickets</p>
         </div>
     </div>
 
-    <!-- Search Modal -->
-    <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="searchModalLabel">Search Events</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="searchInput" placeholder="Enter event name, team, or artist...">
-                        <button class="btn btn-primary" type="button" id="performSearchBtn">Search</button>
-                    </div>
-                    <div id="searchResults" class="mt-3">
-                        <p class="text-center text-muted">Search for events to see results here</p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Elements
-        const configForm = document.getElementById('config-form');
-        const statusIndicator = document.getElementById('status-indicator');
-        const runningStatus = document.getElementById('running-status');
-        const lastCheck = document.getElementById('last-check');
-        const ticketsFound = document.getElementById('tickets-found');
-        const purchaseAttempts = document.getElementById('purchase-attempts');
-        const successfulPurchases = document.getElementById('successful-purchases');
-        const uptime = document.getElementById('uptime');
-        const lastResult = document.getElementById('last-result');
-        const startBtn = document.getElementById('start-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const configEventUrl = document.getElementById('config-event-url');
-        const configTickets = document.getElementById('config-tickets');
-        const configInterval = document.getElementById('config-interval');
-        const configCategory = document.getElementById('config-category');
-        const configPrimarySeat = document.getElementById('config-primary-seat');
-        const configSecondarySeat = document.getElementById('config-secondary-seat');
-
-        // Form fields
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const eventUrlInput = document.getElementById('eventUrl');
-        const ticketsInput = document.getElementById('tickets');
-        const intervalInput = document.getElementById('interval');
-        const categoryInput = document.getElementById('category');
-        const primarySeatPreferenceInput = document.getElementById('primarySeatPreference');
-        const secondarySeatPreferenceInput = document.getElementById('secondarySeatPreference');
-
-        // Search elements
-        const searchInput = document.getElementById('searchInput');
-        const performSearchBtn = document.getElementById('performSearchBtn');
-        const searchResults = document.getElementById('searchResults');
-        const searchModal = new bootstrap.Modal(document.getElementById('searchModal'));
-
-        // Load initial configuration
-        fetchConfig();
+        // Store the current task ID
+        let currentTaskId = null;
         
-        // Start status polling
-        pollStatus();
-        setInterval(pollStatus, 5000);
-
-        // Event listeners
-        configForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await saveConfig();
-        });
-
-        startBtn.addEventListener('click', async () => {
-            try {
-                const response = await fetch('/control/start', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    updateStatusDisplay(data.status);
-                    alert('Monitoring started successfully!');
-                } else {
-                    alert('Failed to start monitoring');
-                }
-            } catch (error) {
-                console.error('Error starting monitoring:', error);
-                alert('Error starting monitoring: ' + error.message);
-            }
-        });
-
-        stopBtn.addEventListener('click', async () => {
-            try {
-                const response = await fetch('/control/stop', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    updateStatusDisplay(data.status);
-                    alert('Monitoring stopped successfully!');
-                } else {
-                    alert('Failed to stop monitoring');
-                }
-            } catch (error) {
-                console.error('Error stopping monitoring:', error);
-                alert('Error stopping monitoring: ' + error.message);
-            }
-        });
-
-        // Search functionality
-        performSearchBtn.addEventListener('click', async () => {
-            const query = searchInput.value.trim();
-            if (query.length < 2) {
-                searchResults.innerHTML = '<p class="text-danger">Please enter at least 2 characters</p>';
+        // Function to start monitoring
+        async function startMonitoring() {
+            const matchName = document.getElementById('matchName').value;
+            const matchDate = document.getElementById('matchDate').value;
+            const ticketQuantity = document.getElementById('ticketQuantity').value;
+            
+            if (!matchName || !matchDate) {
+                alert('Please fill in all required fields');
                 return;
             }
             
-            searchResults.innerHTML = '<p class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></p>';
-            
             try {
-                const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    displaySearchResults(data.results);
+                const response = await fetch('/api/monitor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: matchName,
+                        date: matchDate,
+                        quantity: parseInt(ticketQuantity, 10)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentTaskId = data.taskId;
+                    document.getElementById('statusOutput').textContent = `Monitoring started!\n\nTask ID: ${data.taskId}\nMatch: ${matchName}\nDate: ${matchDate}\nTickets: ${ticketQuantity}\n\nThe bot is now actively monitoring for tickets.`;
+                    document.getElementById('stopBtn').disabled = false;
                 } else {
-                    searchResults.innerHTML = '<p class="text-danger">Error searching for events</p>';
+                    document.getElementById('statusOutput').textContent = `Error: ${data.error || 'Unknown error'}`;
                 }
             } catch (error) {
-                console.error('Error searching events:', error);
-                searchResults.innerHTML = '<p class="text-danger">Error searching for events</p>';
+                document.getElementById('statusOutput').textContent = `Error: ${error.message}`;
             }
-        });
+        }
         
-        // Also trigger search on Enter key
-        searchInput.addEventListener('keyup', (e) => {
-            if (e.key === 'Enter') {
-                performSearchBtn.click();
+        // Function to check status
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                if (data.tasks && data.tasks.length > 0) {
+                    let statusText = 'Active Monitoring Tasks:\n\n';
+                    
+                    data.tasks.forEach(task => {
+                        statusText += `Task ID: ${task.id}\n`;
+                        statusText += `Match: ${task.match}\n`;
+                        statusText += `Date: ${task.date}\n`;
+                        statusText += `Tickets: ${task.quantity}\n`;
+                        statusText += `Purchased: ${task.purchased ? 'Yes' : 'No'}\n\n`;
+                    });
+                    
+                    document.getElementById('statusOutput').textContent = statusText;
+                } else {
+                    document.getElementById('statusOutput').textContent = 'No active monitoring tasks.';
+                }
+            } catch (error) {
+                document.getElementById('statusOutput').textContent = `Error checking status: ${error.message}`;
             }
-        });
-
-        function displaySearchResults(results) {
-            if (!results || results.length === 0) {
-                searchResults.innerHTML = '<p class="text-center text-muted">No events found matching your search</p>';
+        }
+        
+        // Function to stop monitoring
+        async function stopMonitoring() {
+            if (!currentTaskId) {
+                document.getElementById('statusOutput').textContent = 'No active task to stop.';
                 return;
             }
             
-            let html = '<div class="list-group">';
-            
-            results.forEach(event => {
-                const availabilityClass = event.available ? 'text-success' : 'text-danger';
-                const availabilityText = event.available ? 'Available' : 'Sold Out';
-                
-                html += `
-                    <a href="#" class="list-group-item list-group-item-action event-result" data-url="${event.url}">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">${event.title}</h5>
-                            <small class="${availabilityClass}">${availabilityText}</small>
-                        </div>
-                        <p class="mb-1">${event.date || 'Date not available'}</p>
-                        <small class="text-muted">${event.url}</small>
-                    </a>
-                `;
-            });
-            
-            html += '</div>';
-            searchResults.innerHTML = html;
-            
-            // Add click event to select event
-            document.querySelectorAll('.event-result').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const url = item.dataset.url;
-                    eventUrlInput.value = url;
-                    searchModal.hide();
-                });
-            });
-        }
-
-        // Helper functions
-        async function fetchConfig() {
             try {
-                const response = await fetch('/config');
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    // Update form fields
-                    emailInput.value = data.config.WEBOOK_EMAIL || '';
-                    // Don't set password as it's masked
-                    eventUrlInput.value = data.config.TARGET_EVENT_URL || '';
-                    ticketsInput.value = data.config.NUMBER_OF_TICKETS || '1';
-                    intervalInput.value = data.config.MONITOR_INTERVAL || '10';
-                    categoryInput.value = data.config.TICKET_CATEGORY || 'General';
-                    primarySeatPreferenceInput.value = data.config.PRIMARY_SEAT_PREFERENCE || '';
-                    secondarySeatPreferenceInput.value = data.config.SECONDARY_SEAT_PREFERENCE || '';
-                    
-                    // Update config display
-                    configEventUrl.textContent = data.config.TARGET_EVENT_URL || 'Not set';
-                    configTickets.textContent = data.config.NUMBER_OF_TICKETS || '1';
-                    configInterval.textContent = data.config.MONITOR_INTERVAL || '10';
-                    configCategory.textContent = data.config.TICKET_CATEGORY || 'General';
-                    configPrimarySeat.textContent = data.config.PRIMARY_SEAT_PREFERENCE || 'Not set';
-                    configSecondarySeat.textContent = data.config.SECONDARY_SEAT_PREFERENCE || 'Not set';
-                }
-            } catch (error) {
-                console.error('Error fetching config:', error);
-            }
-        }
-
-        async function saveConfig() {
-            try {
-                const formData = {
-                    email: emailInput.value,
-                    password: passwordInput.value,
-                    eventUrl: eventUrlInput.value,
-                    tickets: ticketsInput.value,
-                    interval: intervalInput.value,
-                    category: categoryInput.value,
-                    primarySeatPreference: primarySeatPreferenceInput.value,
-                    secondarySeatPreference: secondarySeatPreferenceInput.value
-                };
-                
-                const response = await fetch('/config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
+                const response = await fetch(`/api/monitor/${currentTaskId}`, {
+                    method: 'DELETE'
                 });
                 
-                if (response.ok) {
-                    alert('Configuration saved successfully!');
-                    await fetchConfig();
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('statusOutput').textContent = `Task ${currentTaskId} stopped successfully.`;
+                    currentTaskId = null;
+                    document.getElementById('stopBtn').disabled = true;
                 } else {
-                    alert('Failed to save configuration');
+                    document.getElementById('statusOutput').textContent = `Error: ${data.message || 'Unknown error'}`;
                 }
             } catch (error) {
-                console.error('Error saving config:', error);
-                alert('Error saving config: ' + error.message);
-            }
-        }
-
-        async function pollStatus() {
-            try {
-                const response = await fetch('/status');
-                if (response.ok) {
-                    const data = await response.json();
-                    updateStatusDisplay(data);
-                }
-            } catch (error) {
-                console.error('Error polling status:', error);
-            }
-        }
-
-        function updateStatusDisplay(status) {
-            // Update status indicator
-            if (status.isRunning) {
-                statusIndicator.classList.remove('status-stopped');
-                statusIndicator.classList.add('status-running');
-                runningStatus.textContent = 'Running';
-                startBtn.disabled = true;
-                stopBtn.disabled = false;
-            } else {
-                statusIndicator.classList.remove('status-running');
-                statusIndicator.classList.add('status-stopped');
-                runningStatus.textContent = 'Stopped';
-                startBtn.disabled = false;
-                stopBtn.disabled = true;
-            }
-            
-            // Update other status info
-            lastCheck.textContent = status.lastCheck ? new Date(status.lastCheck).toLocaleString() : 'Never';
-            ticketsFound.textContent = status.ticketsFound ? 'Yes' : 'No';
-            purchaseAttempts.textContent = status.purchaseAttempts;
-            successfulPurchases.textContent = status.successfulPurchases;
-            
-            // Format uptime
-            const uptimeSeconds = Math.floor(status.uptime);
-            if (uptimeSeconds < 60) {
-                uptime.textContent = `${uptimeSeconds} seconds`;
-            } else if (uptimeSeconds < 3600) {
-                uptime.textContent = `${Math.floor(uptimeSeconds / 60)} minutes ${uptimeSeconds % 60} seconds`;
-            } else {
-                uptime.textContent = `${Math.floor(uptimeSeconds / 3600)} hours ${Math.floor((uptimeSeconds % 3600) / 60)} minutes`;
-            }
-            
-            // Update last result
-            if (status.lastCheckResult) {
-                lastResult.textContent = JSON.stringify(status.lastCheckResult, null, 2);
+                document.getElementById('statusOutput').textContent = `Error stopping task: ${error.message}`;
             }
         }
     </script>
 </body>
-</html>
+</html> 
