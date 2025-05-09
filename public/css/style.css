@@ -1,0 +1,57 @@
+.match-card {
+    margin-bottom: 20px;
+}
+
+.badge {
+    font-size: 0.85rem;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+}
+
+.status-label {
+    width: 100px;
+    display: inline-block;
+}
+
+.config-section {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.config-section h6 {
+    margin-top: 0;
+}
+
+.timestamp {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.action-buttons {
+    margin-top: 15px;
+}
+
+.action-buttons .btn {
+    margin-right: 5px;
+}
+
+/* Status Colors */
+.status-idle {
+    background-color: #6c757d;
+}
+
+.status-running {
+    background-color: #17a2b8;
+}
+
+.status-success {
+    background-color: #28a745;
+}
+
+.status-error {
+    background-color: #dc3545;
+} 

@@ -1,35 +1,39 @@
-FROM node:18-slim
+FROM node:16-slim
 
-# Install latest Chrome and other dependencies
+# Install necessary dependencies for Puppeteer
 RUN apt-get update \
-    && apt-get install -y wget gnupg \
+    && apt-get install -y wget gnupg ca-certificates procps libxss1 \
     && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && apt-get update \
-    && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 \
-      --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /app
 
-# Create app directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Install app dependencies
+# Copy package.json and package-lock.json
 COPY package*.json ./
-RUN npm ci --only=production
 
-# Bundle app source
+# Install dependencies
+RUN npm ci
+
+# Copy the rest of the application
 COPY . .
 
 # Create logs directory
 RUN mkdir -p logs
+
+# Create the config directory
+RUN mkdir -p config
 
 # Set environment variables
 ENV NODE_ENV=production
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
-# Expose port
-EXPOSE 3000
+# Expose the port
+EXPOSE 8080
 
 # Start the application
-CMD [ "node", "src/index.js" ] 
+CMD ["npm", "start"] 

@@ -1,0 +1,33 @@
+{
+  "website": {
+    "baseUrl": "https://webook.com"
+  },
+  "tickets": {
+    "matches": []
+  },
+  "refreshInterval": 60000,
+  "browser": {
+    "headless": true,
+    "slowMo": 50
+  },
+  "loginInfo": {
+    "email": "",
+    "password": ""
+  },
+  "paymentInfo": {
+    "cardNumber": "",
+    "expiryDate": "",
+    "cvv": "",
+    "firstName": "",
+    "lastName": "",
+    "email": ""
+  },
+  "logging": {
+    "level": "info",
+    "file": "logs/ticket-bot.log"
+  },
+  "server": {
+    "port": 3000,
+    "host": "0.0.0.0"
+  }
+} 

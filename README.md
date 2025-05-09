@@ -1,137 +1,177 @@
 # Football Ticket Bot
 
-An automated bot for purchasing football match tickets from webook.com as soon as they become available.
+An automated bot for purchasing football tickets as soon as they become available on a specific website.
 
 ## Features
 
-- Monitors ticket website continuously and purchases tickets when they are released
-- Supports customization of target matches
-- Provides API endpoints to control and monitor the bot
-- Runs 24/7 with automatic error recovery
-- Designed for deployment on fly.io
+- Monitors a ticket website for ticket availability
+- Automatically logs in to your webook.com account
+- Automatically purchases tickets when they become available
+- Supports customization for different matches
+- Can handle both block seating and individual seat selection
+- Configurable to ensure adjacent seating
+- Web interface for monitoring and configuration
+- Scheduled 24/7 operation
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 16+
 - npm or yarn
-- Docker (for containerization)
-- fly.io account and CLI (for deployment)
 
-## Local Development
+## Installation
 
-1. Clone the repository
+1. Clone this repository:
+```
+git clone <repository-url>
+cd football-ticket-bot
+```
+
 2. Install dependencies:
-   ```
-   npm install
-   ```
-3. Create a `.env` file in the root directory with the following content:
-   ```
-   # Website credentials
-   WEBSITE_USERNAME=your_username
-   WEBSITE_PASSWORD=your_password
-   
-   # Website URL
-   WEBSITE_URL=https://webook.com
-   
-   # Server configuration
-   PORT=3000
-   
-   # Logging configuration
-   LOG_LEVEL=info
-   ```
-4. Start the development server:
-   ```
-   npm run dev
-   ```
-
-## API Endpoints
-
-### Start Monitoring
-
 ```
-POST /api/monitor
+npm install
 ```
 
-Request body:
+3. Create a `.env` file in the root directory (use the `.env.example` as a template) and fill in your configuration:
+```
+# Base URL for the ticket website
+WEBSITE_URL=https://webook.com
+
+# Login information
+LOGIN_EMAIL=your_email@example.com
+LOGIN_PASSWORD=your_password
+
+# Payment information
+CARD_NUMBER=your_card_number
+EXPIRY_DATE=MM/YY
+CVV=123
+FIRST_NAME=Your
+LAST_NAME=Name
+EMAIL=your@email.com
+
+# Bot settings
+REFRESH_INTERVAL=60000
+HEADLESS=true
+SLOW_MO=50
+
+# Server settings
+PORT=3000
+HOST=0.0.0.0
+
+# Logging
+LOG_LEVEL=info
+```
+
+## Configuration
+
+The bot is configured using a combination of environment variables and the `config/default.json` file. You can also modify the configuration through the web interface.
+
+### Match Configuration
+
+In `config/default.json`, you can configure the matches you want to monitor:
+
 ```json
 {
-  "name": "Real Madrid vs Barcelona",
-  "date": "2023-05-20",
-  "quantity": 2
+  "tickets": {
+    "matches": [
+      {
+        "name": "Real Madrid vs Barcelona",
+        "url": "/real-madrid",
+        "team": "Real Madrid",
+        "preferredSeats": {
+          "section": "G10",
+          "quantity": 5,
+          "adjacentSeats": true
+        },
+        "alternative": {
+          "section": "H7",
+          "quantity": 5,
+          "adjacentSeats": true
+        }
+      }
+    ]
+  }
 }
 ```
 
-Response:
+### Login Configuration
+
+Make sure to configure your webook.com login credentials in the `.env` file or in the `config/default.json` file:
+
 ```json
 {
-  "success": true,
-  "taskId": "ticket-monitor-1620000000000",
-  "message": "Started monitoring for Real Madrid vs Barcelona on 2023-05-20 for 2 tickets"
+  "loginInfo": {
+    "email": "your_email@example.com",
+    "password": "your_password"
+  }
 }
 ```
 
-### Check Status
+## Running the Bot
+
+### Development Mode
 
 ```
-GET /api/status
+npm run dev
 ```
 
-Response:
-```json
-{
-  "tasks": [
-    {
-      "id": "ticket-monitor-1620000000000",
-      "match": "Real Madrid vs Barcelona",
-      "date": "2023-05-20",
-      "quantity": 2,
-      "purchased": false
-    }
-  ],
-  "isPurchased": false
-}
-```
-
-### Stop Monitoring
+### Production Mode
 
 ```
-DELETE /api/monitor/:taskId
-```
-
-Response:
-```json
-{
-  "success": true,
-  "message": "Stopped monitoring task ticket-monitor-1620000000000"
-}
+npm start
 ```
 
 ## Deploying to fly.io
 
-1. Install the [fly.io CLI](https://fly.io/docs/hands-on/install-flyctl/)
-2. Login to fly.io:
-   ```
-   fly auth login
-   ```
-3. Create a fly.io app:
-   ```
-   fly apps create football-ticket-bot
-   ```
-4. Set secrets for your environment variables:
-   ```
-   fly secrets set WEBSITE_USERNAME=your_username WEBSITE_PASSWORD=your_password
-   ```
+1. Install the Fly CLI:
+```
+curl -L https://fly.io/install.sh | sh
+```
+
+2. Login to Fly:
+```
+fly auth login
+```
+
+3. Create a new app:
+```
+fly launch
+```
+
+4. Set environment secrets (replace with your actual values):
+```
+fly secrets set LOGIN_EMAIL=your_email@example.com
+fly secrets set LOGIN_PASSWORD=your_password
+fly secrets set CARD_NUMBER=1234567890123456
+fly secrets set EXPIRY_DATE=12/24
+fly secrets set CVV=123
+fly secrets set FIRST_NAME=Your
+fly secrets set LAST_NAME=Name
+fly secrets set EMAIL=your@email.com
+```
+
 5. Deploy the app:
-   ```
-   fly deploy
-   ```
+```
+fly deploy
+```
 
-## Customizing
+## Web Interface
 
-To customize the bot for different matches:
+The bot includes a web interface for monitoring and configuration, available at:
 
-1. Use the API endpoint to set different match targets
-2. Update the website selectors in `src/services/ticketService.js` if necessary
+```
+http://localhost:3000
+```
+
+## How It Works
+
+1. The bot logs in to your webook.com account using your credentials
+2. It navigates to the configured match URL (or searches for it first)
+3. It clicks on "Public Tickets"
+4. It selects the specified team
+5. Depending on the stadium type, it:
+   - Selects blocks of seats
+   - Or selects individual seats (preferring adjacent seats if configured)
+6. It proceeds to checkout and completes the purchase with the configured payment details
 
 ## License
 
