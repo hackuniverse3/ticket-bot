@@ -30,121 +30,16 @@ class EventFinder {
       // Configure viewport for a better viewing experience
       await page.setViewport({ width: 1280, height: 900 });
       
-      // Navigate to the main page
-      const searchUrl = `${this.baseUrl}`;
-      logger.info(`Navigating to ${searchUrl}`);
+      // Construct the search URL directly
+      const searchUrl = `${this.baseUrl}/en/search?q=${encodeURIComponent(searchTerm)}`;
+      logger.info(`Navigating directly to search URL: ${searchUrl}`);
       
+      // Navigate directly to the search results page
       await page.goto(searchUrl, { waitUntil: 'networkidle2' });
       
       // Take a screenshot for debugging
-      await page.screenshot({ path: 'logs/main-page.png' });
-      logger.info('Saved screenshot of main page');
-      
-      // Try to find and click the search button based on the provided HTML
-      try {
-        // First try to find the button with the specific attributes from the HTML code
-        const searchButtonSelector = [
-          'button[data-testid="mobile-search"]',
-          'button[data-location="header"]',
-          'button[data-title="search"]',
-          // Using the text content as a fallback
-          'button:has-text("Search on webook.com")',
-          // Using the image as another identifier
-          'button:has(img[alt=""]:has([src*="search.svg"]))',
-          // Generic search button selectors
-          '.search-button',
-          'button:has(p:has-text("Search"))'
-        ];
-        
-        logger.info('Looking for search button with selectors: ' + searchButtonSelector.join(', '));
-        
-        // Wait for any of these selectors
-        await page.waitForSelector(searchButtonSelector.join(', '), { timeout: 10000 });
-        
-        // Click the search button
-        await page.click(searchButtonSelector[0]);
-        logger.info('Clicked on search button');
-        
-        // After clicking, wait for the search input to appear
-        await page.waitForSelector('input[type="search"], input[placeholder*="Search"], input[placeholder*="search"]', 
-          { timeout: 5000 });
-        
-        // Now look for the main search input seen in the screenshot
-        const mainSearchInputSelector = 'input[placeholder*="Search events"], input[placeholder*="experiences"]';
-        await page.waitForSelector(mainSearchInputSelector, { timeout: 5000 })
-          .catch(() => logger.info('Main search input not found, using the available search input'));
-        
-        // Find the search input and type the search term
-        const searchInputs = await page.$$('input[type="search"], input[placeholder*="Search"], input[placeholder*="search"]');
-        
-        if (searchInputs.length > 0) {
-          await searchInputs[0].type(searchTerm);
-          logger.info(`Entered search term: ${searchTerm}`);
-          
-          // Look for the search button after typing
-          const searchSubmitSelector = [
-            'button:has-text("Search")',
-            'button.search-button',
-            'button[type="submit"]',
-            // From the screenshot
-            'button.SearchBox_submit__38csD'
-          ];
-          
-          // Wait briefly for any UI updates
-          await page.waitForTimeout(1000);
-          
-          // Take a screenshot after typing
-          await page.screenshot({ path: 'logs/after-typing-search.png' });
-          
-          // Try to find the search button
-          const searchSubmitButton = await page.$(searchSubmitSelector.join(', '));
-          
-          if (searchSubmitButton) {
-            logger.info('Found search submit button, clicking it');
-            await searchSubmitButton.click();
-          } else {
-            logger.info('No search submit button found, pressing Enter');
-            await searchInputs[0].press('Enter');
-          }
-          
-          // Wait for search results to load
-          await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 15000 })
-            .catch(() => logger.info('No navigation occurred after search submission'));
-          
-          // Take a screenshot of search results
-          await page.screenshot({ path: 'logs/search-results.png' });
-          logger.info('Saved screenshot of search results');
-        } else {
-          logger.warn('Could not find search input after clicking search button');
-        }
-      } catch (error) {
-        logger.warn(`Error with initial search approach: ${error.message}`);
-        logger.info('Trying alternative search approach');
-        
-        // Alternative approach: Look for the search input directly in the header
-        try {
-          // Search input visible in the screenshot
-          const directSearchInputSelector = 'input[placeholder*="Search events, experiences"], .SearchBox_searchInput__mSQRH';
-          
-          await page.waitForSelector(directSearchInputSelector, { timeout: 5000 });
-          await page.type(directSearchInputSelector, searchTerm);
-          logger.info(`Entered search term directly: ${searchTerm}`);
-          
-          // Find and click the search button
-          const directSearchButtonSelector = 'button:has-text("Search"), .SearchBox_submit__38csD';
-          await page.click(directSearchButtonSelector);
-          
-          // Wait for results
-          await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 15000 })
-            .catch(() => logger.info('No navigation occurred after direct search'));
-          
-          await page.screenshot({ path: 'logs/direct-search-results.png' });
-        } catch (directSearchError) {
-          logger.warn(`Direct search approach also failed: ${directSearchError.message}`);
-          logger.info('Taking screenshot to diagnose the issue');
-          await page.screenshot({ path: 'logs/search-error.png' });
-        }
-      }
+      await page.screenshot({ path: 'logs/search-results.png' });
+      logger.info('Saved screenshot of search results');
       
       // Extract events from the page
       const events = await this.extractEvents(page);
