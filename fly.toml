@@ -1,4 +1,4 @@
-app = "football-ticket-bot"
+app = "we-bot"
 primary_region = "lax"
 
 [env]
