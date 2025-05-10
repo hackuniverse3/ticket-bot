@@ -1,14 +1,12 @@
 app = "we-bot"
-primary_region = "lax"
+primary_region = "iad"
+
+[build]
+  builder = "heroku/buildpacks:20"
+  dockerfile = "Dockerfile"
 
 [env]
   PORT = "8080"
-  HOST = "0.0.0.0"
-  NODE_ENV = "production"
-  LOG_LEVEL = "info"
-  HEADLESS = "true"
-  SLOW_MO = "50"
-  REFRESH_INTERVAL = "60000"
 
 [http_service]
   internal_port = 8080
@@ -16,29 +14,7 @@ primary_region = "lax"
   auto_stop_machines = false
   auto_start_machines = true
   min_machines_running = 1
-  processes = ["web"]
-  
-  [http_service.concurrency]
-    type = "connections"
-    hard_limit = 550
-    soft_limit = 500
 
-  [[http_service.checks]]
-    interval = "10s"
-    timeout = "5s"
-    grace_period = "30s"
-    method = "GET"
-    path = "/healthcheck"
-    protocol = "http"
-
-[[services.ports]]
-  handlers = ["http"]
-  port = 80
-  force_https = true
-
-[[services.ports]]
-  handlers = ["tls", "http"]
-  port = 443
-
-[processes]
-  web = "node src/index.js" 
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
