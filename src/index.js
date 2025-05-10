@@ -87,6 +87,14 @@ cron.schedule(scheduleExpression, async () => {
 });
 
 // API Endpoints
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'Football Ticket Bot API is running' });
+});
+
+app.get('/healthcheck', (req, res) => {
+  res.json({ status: 'ok', message: 'Health check passed' });
+});
+
 app.get('/api/status', (req, res) => {
   res.json(getStatus());
 });
@@ -309,4 +317,5 @@ app.post('/api/run-now', async (req, res) => {
 app.listen(PORT, HOST, () => {
   logger.info(`Server running on http://${HOST}:${PORT}`);
   logger.info(`Ticket bot scheduled to check tickets every ${Math.ceil(refreshInterval / 60000)} minutes`);
+  logger.info(`Environment: ${process.env.NODE_ENV}`);
 }); 

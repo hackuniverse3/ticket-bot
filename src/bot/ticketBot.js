@@ -297,9 +297,17 @@ class TicketBot {
     const slowMo = parseInt(process.env.SLOW_MO || this.browserConfig.slowMo);
     
     return puppeteer.launch({
-      headless: headless === "true" || headless === true,
+      headless: headless === "true" || headless === true ? 'new' : false,
       slowMo,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-zygote',
+        '--disable-software-rasterizer',
+        '--disable-features=VizDisplayCompositor'
+      ]
     });
   }
 
